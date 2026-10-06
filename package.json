@@ -12,7 +12,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test test/contracts.test.ts"
+    "test": "node --experimental-strip-types --test test/contracts.test.ts",
+    "format": "npx -y prettier@3.9.9 --write ."
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",
@@ -24,7 +25,8 @@
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
     "react-native-safe-area-context": "~5.7.0",
-    "react-native-web": "^0.21.2"
+    "react-native-web": "^0.21.2",
+    "socket.io-client": "^4.8.4"
   },
   "devDependencies": {
     "@types/node": "^24.19.1",
