@@ -1,7 +1,9 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import { io, type Socket } from 'socket.io-client';
-import { API_URL, getAccessToken, refreshSession } from './api';
+import { getAccessToken, refreshSession } from './api';
+import { API_URL } from './config';
+import { net } from './offline/net';
 
 /**
  * Sincronización en tiempo real con la plataforma (el mismo canal que usa la
@@ -12,6 +14,10 @@ import { API_URL, getAccessToken, refreshSession } from './api';
  * al volver la app al frente o recuperar la señal) se avisa de todo, porque
  * mientras tanto pudo cambiar cualquier cosa. En segundo plano el canal se
  * cierra: Android suspende la app y no tiene sentido gastar batería ni datos.
+ *
+ * Sin conexión, cada pantalla muestra la copia guardada en el teléfono
+ * (src/offline); al volver la conexión se reconecta enseguida y todo se pone
+ * al día.
  *
  * Temas: los mismos de la plataforma (backend/src/realtime/realtime-audience.ts).
  */
@@ -76,6 +82,7 @@ function connect() {
   });
   setStatus('connecting');
   socket.on('ready', () => {
+    net.reachable();
     setStatus('live');
     watched.forEach((_, professionalId) => socket?.emit('watch', { professionalId }));
     notify('all');
@@ -108,6 +115,11 @@ AppState.addEventListener('change', (next) => {
   else disconnect();
 });
 
+// Volvió la conexión: se reconecta ya, sin esperar el próximo reintento (hasta 30 s).
+net.subscribe((next) => {
+  if (next === 'online' && status !== 'live' && appState === 'active') restartRealtime();
+});
+
 /** Abre el canal (con la sesión actual si hay una). Se puede llamar varias veces. */
 export function startRealtime() {
   connect();
@@ -117,6 +129,11 @@ export function startRealtime() {
 export function restartRealtime() {
   disconnect();
   connect();
+}
+
+/** Todas las pantallas abiertas vuelven a pedir sus datos (al volver la conexión). */
+export function resyncAll() {
+  notify('all');
 }
 
 /** Qué hacer cuando la plataforma avisa que la sesión cambió (revisarla). */

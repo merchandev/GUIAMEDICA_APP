@@ -35,4 +35,4 @@ Validar especialmente cookies y renovación de sesión en ambas plataformas. Sec
 
 Push iOS necesitará APNs y permisos; App Links Android y Universal Links iOS requieren archivos distintos en el dominio. Cámara, biometría y fotos necesitarán declaraciones de permiso de cada plataforma cuando se implementen. Revisar obligaciones de cifrado/exportación de Apple antes de publicar; no se ha declarado una exención automática.
 
-La sincronización sigue utilizando la misma API y actualización REST automática. Esta adaptación no implementa el canal de eventos del backend ni push.
+La sincronización usa el canal en vivo de la plataforma y, sin conexión, la copia cifrada del teléfono (README, «Sin conexión»). Push sigue pendiente.

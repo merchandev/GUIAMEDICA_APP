@@ -1,11 +1,12 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import { API_URL } from './config';
 import { errorMessage } from './contracts';
+import { net } from './offline/net';
 
-export const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://guiamedicamonagas.com/api/v1').replace(/\/$/, '');
-export const SITE_URL = 'https://guiamedicamonagas.com';
+export { API_URL, SITE_URL } from './config';
 let accessToken: string | null = null;
-let refreshPromise: Promise<boolean> | null = null;
+let refreshPromise: Promise<RefreshOutcome> | null = null;
 let onExpired = () => {};
 let sessionGeneration = 0;
 const KEY = 'gmm.refresh';
@@ -17,6 +18,13 @@ export class ApiError extends Error {
   ) {
     super(message);
   }
+}
+/**
+ * El pedido no llegó a la plataforma (sin señal, sin Internet o la plataforma
+ * caída). Las pantallas muestran lo guardado y los cambios quedan en espera.
+ */
+export class OfflineError extends Error {
+  name = 'OfflineError';
 }
 export function setExpiryHandler(handler: () => void) {
   onExpired = handler;
@@ -58,12 +66,19 @@ export async function request<T>(path: string, method = 'GET', body?: unknown, r
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch (e) {
+    net.unreachable();
     if (e instanceof Error && e.name === 'AbortError')
-      throw new Error('La plataforma tardó demasiado en responder. Intenta actualizar de nuevo.');
-    throw new Error('No se pudo conectar con la plataforma. Revisa tu conexión e intenta de nuevo.');
+      throw new OfflineError('La plataforma tardó demasiado en responder. Intenta actualizar de nuevo.');
+    throw new OfflineError('No se pudo conectar con la plataforma. Revisa tu conexión e intenta de nuevo.');
   } finally {
     clearTimeout(timer);
   }
+  // 502–504: responde el proxy, pero la plataforma no (por ejemplo, durante una actualización).
+  if (response.status >= 502 && response.status <= 504) {
+    net.unreachable();
+    throw new OfflineError('La plataforma no responde en este momento. Intenta de nuevo en unos minutos.');
+  }
+  net.reachable();
   const credentialEndpoint = [
     '/auth/login',
     '/auth/register',
@@ -78,7 +93,10 @@ export async function request<T>(path: string, method = 'GET', body?: unknown, r
     !credentialEndpoint &&
     requestGeneration === sessionGeneration
   ) {
-    if (await refreshSession()) return request<T>(path, method, body, false);
+    const outcome = await refreshSessionStatus();
+    if (outcome === 'ok') return request<T>(path, method, body, false);
+    // Sin conexión no se sabe si la sesión sigue vigente: no se cierra.
+    if (outcome === 'offline') throw new OfflineError('Se perdió la conexión al renovar tu sesión.');
     if (requestGeneration === sessionGeneration) {
       await forgetSession();
       onExpired();
@@ -102,26 +120,42 @@ export async function acceptLogin(result: Login) {
   if (Platform.OS !== 'web') await SecureStore.deleteItemAsync(LOGGED_OUT);
   if (result.refreshToken && Platform.OS !== 'web') await SecureStore.setItemAsync(KEY, result.refreshToken);
 }
-export async function refreshSession(): Promise<boolean> {
+/**
+ * `ok`: sesión renovada. `denied`: la plataforma dice que no hay sesión (venció,
+ * se cerró en todos lados o se cerró aquí). `offline`: no se pudo preguntar.
+ */
+export type RefreshOutcome = 'ok' | 'denied' | 'offline';
+export function refreshSessionStatus(): Promise<RefreshOutcome> {
   if (!refreshPromise)
-    refreshPromise = (async () => {
+    refreshPromise = (async (): Promise<RefreshOutcome> => {
       const generation = sessionGeneration;
-      if (Platform.OS !== 'web' && (await SecureStore.getItemAsync(LOGGED_OUT)) === 'true') return false;
+      if (Platform.OS !== 'web' && (await SecureStore.getItemAsync(LOGGED_OUT)) === 'true') return 'denied';
       const token = await getRefresh();
-      const result = await request<Login>('/auth/refresh', 'POST', token ? { refreshToken: token } : undefined, false);
-      if (generation !== sessionGeneration) return false;
+      let result: Login;
+      try {
+        result = await request<Login>('/auth/refresh', 'POST', token ? { refreshToken: token } : undefined, false);
+      } catch (e) {
+        if (e instanceof OfflineError) return 'offline';
+        // Límite de pedidos o falla de la plataforma: la sesión puede seguir vigente.
+        if (e instanceof ApiError && (e.status === 429 || e.status >= 500)) return 'offline';
+        return 'denied';
+      }
+      if (generation !== sessionGeneration) return 'denied';
       if (!result.accessToken) {
         accessToken = null;
-        return false;
+        return 'denied';
       }
       await acceptLogin(result);
-      return true;
+      return 'ok';
     })()
-      .catch(() => false)
+      .catch((): RefreshOutcome => 'denied')
       .finally(() => {
         refreshPromise = null;
       });
   return refreshPromise;
+}
+export async function refreshSession(): Promise<boolean> {
+  return (await refreshSessionStatus()) === 'ok';
 }
 export async function logout() {
   try {

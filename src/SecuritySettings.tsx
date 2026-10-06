@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { acceptLogin, request } from './api';
+import { useOnline } from './offline';
 export function SecuritySettings() {
+  const online = useOnline();
   const [currentPassword, setCurrent] = useState('');
   const [newPassword, setNew] = useState('');
   const [busy, setBusy] = useState(false);
@@ -40,6 +42,11 @@ export function SecuritySettings() {
           style={{ minHeight: 48, padding: 14, borderWidth: 1, borderColor: '#cddad1', borderRadius: 12, fontSize: 16 }}
         />
       ))}
+      {!online && (
+        <Text style={{ color: '#5f4510', backgroundColor: '#fff6e0', padding: 10, borderRadius: 10, lineHeight: 20 }}>
+          Sin conexión: para cambiar la contraseña necesitas internet.
+        </Text>
+      )}
       {!!error && (
         <Text accessibilityRole="alert" style={{ color: '#9b2929' }}>
           {error}
@@ -47,7 +54,7 @@ export function SecuritySettings() {
       )}
       <Pressable
         accessibilityRole="button"
-        disabled={busy || !currentPassword || !newPassword}
+        disabled={busy || !online || !currentPassword || !newPassword}
         onPress={() => {
           void submit();
         }}
@@ -58,6 +65,7 @@ export function SecuritySettings() {
           backgroundColor: '#e7eee7',
           alignItems: 'center',
           justifyContent: 'center',
+          opacity: online ? 1 : 0.5,
         }}
       >
         <Text style={{ color: '#125545', fontWeight: '600' }}>{busy ? 'Guardando…' : 'Cambiar contraseña'}</Text>

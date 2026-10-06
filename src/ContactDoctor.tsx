@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, Switch, Text, TextInput, View } from 'react-native';
 import { request } from './api';
+import { fetchCached, useOnline } from './offline';
 export function ContactDoctor({ slug, name }: { slug: string; name: string }) {
+  const online = useOnline();
   const [days, setDays] = useState<number | null>(null);
   const [emailVerified, setVerified] = useState(false);
   const [message, setMessage] = useState('');
@@ -11,8 +13,8 @@ export function ContactDoctor({ slug, name }: { slug: string; name: string }) {
   const [error, setError] = useState('');
   useEffect(() => {
     let live = true;
-    void request<{ days: number; emailVerified: boolean }>('/contact/requests/prefill')
-      .then((data) => {
+    void fetchCached<{ days: number; emailVerified: boolean }>('me:contact-prefill', '/contact/requests/prefill')
+      .then(({ data }) => {
         if (live) {
           setDays(data.days);
           setVerified(data.emailVerified);
@@ -81,14 +83,19 @@ export function ContactDoctor({ slug, name }: { slug: string; name: string }) {
         </View>
       )}
       {!emailVerified && <Text>Verifica tu correo en la plataforma para enviar pedidos de contacto.</Text>}
-      {!!error && (
+      {!online && (
+        <Text style={{ color: '#5f4510', backgroundColor: '#fff6e0', padding: 10, borderRadius: 10, lineHeight: 20 }}>
+          Sin conexión: el pedido necesita internet para enviarse.
+        </Text>
+      )}
+      {!!error && online && (
         <Text accessibilityRole="alert" style={{ color: '#9b2929' }}>
           {error}
         </Text>
       )}
       <Pressable
         accessibilityRole="button"
-        disabled={busy || !emailVerified || !consent || !days || message.trim().length < 10}
+        disabled={busy || !online || !emailVerified || !consent || !days || message.trim().length < 10}
         onPress={() => {
           void submit();
         }}

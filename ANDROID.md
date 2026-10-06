@@ -40,7 +40,7 @@ Para regenerar los archivos nativos:
 npm run android:prebuild
 ```
 
-Revisar cambios nativos propios antes de regenerar. El icono, HTTPS obligatorio y la desactivación de backup se conservan con el plugin local `plugins/withAndroidBranding.js`. Los permisos de almacenamiento y superposición se bloquean en app.json.
+Revisar cambios nativos propios antes de regenerar. El icono, HTTPS obligatorio y la desactivación de backup se conservan con el plugin local `plugins/withAndroidBranding.js`. Los permisos de almacenamiento y superposición se bloquean en app.json. La app usa INTERNET y, desde el modo sin conexión, ACCESS_NETWORK_STATE y ACCESS_WIFI_STATE (`expo-network`, para saber cuándo vuelve la red); ninguno pide autorización a la persona.
 
 ## Funciones incorporadas
 
@@ -56,6 +56,7 @@ Revisar cambios nativos propios antes de regenerar. El icono, HTTPS obligatorio 
 10. Solicitud de eliminación de cuenta a través del mecanismo real de la plataforma.
 11. Pedido de contacto por correo, consentimiento y retirada.
 12. Diseño adaptable, safe areas, teclado y botón Atrás de Android.
+13. Sincronización en tiempo real con la plataforma y modo sin conexión: copia cifrada en el teléfono, cambios en espera y envío automático al volver la señal (ver README, «Sin conexión»).
 
 Todos los cambios se envían a la API HTTPS de la plataforma; no hay una base de datos paralela. No se modificaron el backend, la web ni el VPS en esta entrega. Las verificaciones sin sesión no crean usuarios, citas ni datos productivos.
 
@@ -67,7 +68,7 @@ Todos los cambios se envían a la API HTTPS de la plataforma; no hay una base de
 - Validar login, MFA, cookies después de cerrar la app y renovación de sesión con cuentas de prueba.
 - Validar escrituras con staging y datos sintéticos, no con pacientes reales.
 - Probar teléfono físico, tablet, orientación, accesibilidad y tamaños de letra.
-- Implementar eventos compartidos en backend/web/app para sincronización inmediata. La versión actual consulta cada 15 segundos mientras está activa.
+- Sincronización inmediata: hecha con el canal en vivo de la plataforma (ACT-0049) y el modo sin conexión (ACT-0050).
 - Implementar push FCM y enlazado de Android verificado.
 - Completar módulos avanzados pendientes: alta profesional/organización, documentos, fotos, permisos avanzados y récipes si el backend los habilita.
 - Revisar las 22 alertas transitivas de npm audit antes de liberar.

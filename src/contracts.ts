@@ -55,6 +55,42 @@ export function dateLabel(value: string): string {
     timeStyle: 'short',
   }).format(new Date(value));
 }
+const ACCENTS: Record<string, string> = {
+  á: 'a',
+  à: 'a',
+  ä: 'a',
+  â: 'a',
+  é: 'e',
+  è: 'e',
+  ë: 'e',
+  ê: 'e',
+  í: 'i',
+  ì: 'i',
+  ï: 'i',
+  î: 'i',
+  ó: 'o',
+  ò: 'o',
+  ö: 'o',
+  ô: 'o',
+  ú: 'u',
+  ù: 'u',
+  ü: 'u',
+  û: 'u',
+  ñ: 'n',
+};
+/** Texto para comparar en búsquedas: minúsculas, sin tildes y sin espacios repetidos. */
+export function searchable(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[áàäâéèëêíìïîóòöôúùüûñ]/g, (c) => ACCENTS[c] ?? c)
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+/** Cierra la oración sin duplicar el punto de una abreviatura final («p. m.»). */
+export function sentence(text: string): string {
+  const trimmed = text.trim();
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
 export function errorMessage(body: unknown, fallback: string): string {
   if (body && typeof body === 'object' && 'message' in body) {
     const message = (body as { message: unknown }).message;

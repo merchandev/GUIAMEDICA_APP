@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, Linking, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { acceptLogin, request, SITE_URL } from './api';
+import { useOnline } from './offline';
 
 type Mode = 'register' | 'forgot' | 'reset' | null;
 export function AccountForms({
@@ -10,6 +11,7 @@ export function AccountForms({
   onLogin: () => Promise<void>;
   onModeChange: (open: boolean) => void;
 }) {
+  const online = useOnline();
   const [mode, setMode] = useState<Mode>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -150,6 +152,7 @@ export function AccountForms({
           {consent('Declaro tener 18 años o más', adult, setAdult)}
         </>
       )}
+      {!online && <Text style={s.offline}>Sin conexión: para esto necesitas internet.</Text>}
       {!!error && (
         <Text accessibilityRole="alert" style={s.error}>
           {error}
@@ -167,6 +170,7 @@ export function AccountForms({
           void submit();
         },
         busy ||
+          !online ||
           (mode === 'reset'
             ? !token || !password
             : !email ||
@@ -203,5 +207,6 @@ const s = StyleSheet.create({
   row: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   consent: { flex: 1, color: '#293f37', lineHeight: 22 },
   note: { color: '#60746e' },
+  offline: { color: '#5f4510', backgroundColor: '#fff6e0', padding: 10, borderRadius: 10, lineHeight: 20 },
   error: { color: '#9b2929' },
 });
