@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { AESEncryptionKey, AESSealedData, aesDecryptAsync, aesEncryptAsync } from 'expo-crypto';
 import { Directory, File, Paths } from 'expo-file-system';
-import type { OfflineSnapshot, Persistence } from './store';
+import type { OfflineSnapshot, Persistence, StoredSnapshot } from './store';
 import { utf8Decode, utf8Encode } from './utf8';
 
 /**
@@ -71,7 +71,7 @@ const native: Persistence = {
     const k = await storedKey();
     if (!k) return null;
     currentKey = Promise.resolve(k);
-    let best: { seq: number; snapshot: OfflineSnapshot } | null = null;
+    let best: { seq: number; snapshot: StoredSnapshot } | null = null;
     for (const n of [0, 1]) {
       const file = slot(n);
       if (!file.exists) continue;
@@ -79,7 +79,7 @@ const native: Persistence = {
         const plain = await aesDecryptAsync(AESSealedData.fromCombined(await file.bytes()), k, {
           additionalData: AAD,
         });
-        const parsed = JSON.parse(utf8Decode(plain)) as { seq: number; snapshot: OfflineSnapshot };
+        const parsed = JSON.parse(utf8Decode(plain)) as { seq: number; snapshot: StoredSnapshot };
         if (!best || parsed.seq > best.seq) best = parsed;
       } catch {
         // Archivo a medio escribir o de otra clave: vale el otro.

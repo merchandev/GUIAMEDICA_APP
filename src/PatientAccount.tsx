@@ -32,7 +32,7 @@ export function PatientAccount({ email, userId }: { email: string; userId: strin
   const ops = usePendingOps();
   // Lo guardado en el teléfono se ve enseguida (también sin conexión). Lo escrito sin conexión sigue en el
   // formulario mientras espera enviarse o, si la plataforma lo rechazó, hasta corregirlo o descartarlo.
-  const saved = () => cached<Profile>('me:patient')?.data ?? null;
+  const saved = () => cached<Profile>('me:patient-basic')?.data ?? null;
   const [profile, setProfile] = useState<Profile | null>(saved);
   const [phone, setPhone] = useState(() => String(draftOf(userId)?.phone ?? saved()?.phone ?? ''));
   const [municipality, setMunicipality] = useState(() =>
@@ -73,7 +73,8 @@ export function PatientAccount({ email, userId }: { email: string; userId: strin
     pending.current = true;
     try {
       const [p, g] = await Promise.all([
-        fetchCached<Profile>('me:patient', '/patients/me'),
+        // Solo nombre, código, teléfono y municipio: los datos de salud no llegan a la app.
+        fetchCached<Profile>('me:patient-basic', '/patients/me/basic'),
         fetchCached<Grant[]>('me:grants', '/patients/me/grants'),
       ]);
       showProfile(p.data);
@@ -180,7 +181,7 @@ export function PatientAccount({ email, userId }: { email: string; userId: strin
           const result = await perform(userId, {
             kind: 'patient-profile',
             method: 'PATCH',
-            path: '/patients/me',
+            path: '/patients/me/basic',
             body,
             label: 'Actualizar tus datos de contacto',
           });

@@ -16,13 +16,36 @@ export interface CacheEntry<T = unknown> {
 }
 
 export interface OfflineSnapshot {
+  version: 2;
+  entries: Record<string, CacheEntry>;
+  ops: PendingOp[];
+}
+
+/** Formato anterior: guardaba la ficha completa del paciente (ver `fromVersion1`). */
+interface SnapshotV1 {
   version: 1;
   entries: Record<string, CacheEntry>;
   ops: PendingOp[];
 }
 
+export type StoredSnapshot = OfflineSnapshot | SnapshotV1;
+
+/**
+ * La versión 1 guardaba en `me:patient` la ficha completa del paciente, con
+ * datos de salud e identidad que la app no muestra; ahora la app pide y guarda
+ * solo los datos básicos (`/patients/me/basic`). Esa entrada se quita y los
+ * cambios de la ficha en espera pasan a la ruta reducida.
+ */
+function fromVersion1(old: SnapshotV1): OfflineSnapshot {
+  const { 'me:patient': _full, ...entries } = old.entries ?? {};
+  const ops = (Array.isArray(old.ops) ? old.ops : []).map((op) =>
+    op.kind === 'patient-profile' && op.path === '/patients/me' ? { ...op, path: '/patients/me/basic' } : op,
+  );
+  return { version: 2, entries, ops };
+}
+
 export interface Persistence {
-  load(): Promise<OfflineSnapshot | null>;
+  load(): Promise<StoredSnapshot | null>;
   save(snapshot: OfflineSnapshot): Promise<void>;
   /** Reemplaza todo lo guardado por esta copia, de modo que lo anterior ya no se pueda leer. */
   reset(snapshot: OfflineSnapshot): Promise<void>;
@@ -53,7 +76,7 @@ export function createOfflineStore(persistence: Persistence, options: StoreOptio
   let chain: Promise<void> = Promise.resolve();
   const listeners = new Set<() => void>();
 
-  const snapshot = (): OfflineSnapshot => ({ version: 1, entries, ops });
+  const snapshot = (): OfflineSnapshot => ({ version: 2, entries, ops });
   function changed() {
     version++;
     listeners.forEach((listener) => listener());
@@ -88,22 +111,31 @@ export function createOfflineStore(persistence: Persistence, options: StoreOptio
   }
 
   let loading: Promise<void> | null = null;
-  /** Carga la copia guardada (una sola vez). Si no se puede leer, se empieza de cero. */
+  /**
+   * Carga la copia guardada (una sola vez). Si no se puede leer, se empieza de
+   * cero. Una copia del formato anterior se reescribe entera con clave nueva:
+   * lo que se le quitó no queda legible en ningún archivo.
+   */
   function init() {
     loading ??= (async () => {
+      let rewrite = false;
       try {
         const loaded = await persistence.load();
-        if (loaded?.version === 1) {
+        rewrite = loaded?.version === 1;
+        const current = loaded?.version === 1 ? fromVersion1(loaded) : loaded?.version === 2 ? loaded : null;
+        if (current) {
           // Lo que alguna pantalla guardó mientras tanto es más nuevo.
-          entries = { ...loaded.entries, ...entries };
-          ops = Array.isArray(loaded.ops) ? loaded.ops : [];
+          entries = { ...current.entries, ...entries };
+          ops = Array.isArray(current.ops) ? current.ops : [];
         }
       } catch {
         // Copia ilegible (otra clave, archivo dañado): se reemplaza en la próxima escritura.
       }
       ready = true;
-      if (dirty) saveSoon();
+      if (rewrite) dirty = false;
+      else if (dirty) saveSoon();
       changed();
+      if (rewrite) await enqueue(() => persistence.reset(snapshot()));
     })();
     return loading;
   }

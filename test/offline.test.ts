@@ -13,7 +13,12 @@ import {
   type FlushDeps,
   type PendingOp,
 } from '../src/offline/outbox.ts';
-import { createOfflineStore, type OfflineSnapshot, type Persistence } from '../src/offline/store.ts';
+import {
+  createOfflineStore,
+  type OfflineSnapshot,
+  type Persistence,
+  type StoredSnapshot,
+} from '../src/offline/store.ts';
 import { utf8Decode, utf8Encode } from '../src/offline/utf8.ts';
 
 const op = (id: string, extra: Partial<PendingOp> = {}): PendingOp => ({
@@ -187,7 +192,7 @@ test('envío: si al comprobar el estado se corta la conexión, se detiene sin ma
 });
 
 /** Persistencia en memoria que registra lo que se guardó. */
-function memory(initial: OfflineSnapshot | null = null, failLoad = false) {
+function memory(initial: StoredSnapshot | null = null, failLoad = false) {
   const saves: OfflineSnapshot[] = [];
   const resets: OfflineSnapshot[] = [];
   const persistence: Persistence = {
@@ -207,7 +212,7 @@ function memory(initial: OfflineSnapshot | null = null, failLoad = false) {
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test('copia local: carga lo guardado y guarda los cambios (agrupados) poco después', async () => {
-  const m = memory({ version: 1, entries: { 'me:notices': { savedAt: 1, data: ['viejo'] } }, ops: [op('1')] });
+  const m = memory({ version: 2, entries: { 'me:notices': { savedAt: 1, data: ['viejo'] } }, ops: [op('1')] });
   const store = createOfflineStore(m.persistence, { saveDelayMs: 5, now: () => 42 });
   store.put('pub:directory:1:', { items: [] }); // antes de cargar: no se pierde
   await store.init();
@@ -219,6 +224,35 @@ test('copia local: carga lo guardado y guarda los cambios (agrupados) poco despu
   await wait(30);
   assert.equal(m.saves.length, 1, 'una sola escritura para varios cambios seguidos');
   assert.deepEqual(m.saves[0].entries['me:notices'].data, ['nuevo']);
+  assert.equal(m.resets.length, 0, 'la copia del formato actual no se reescribe');
+});
+
+test('copia local: la del formato anterior pierde la ficha completa y se reescribe entera con clave nueva', async () => {
+  const full = { firstName: 'Ana', lastName: 'Pérez', cedula: 'V-12345678', allergies: 'Penicilina' };
+  const m = memory({
+    version: 1,
+    entries: { 'me:patient': { savedAt: 1, data: full }, 'me:user': { savedAt: 1, data: { id: 'u1' } } },
+    ops: [
+      op('1', { kind: 'patient-profile', path: '/patients/me', body: { phone: '0414-1234567' }, targetId: undefined }),
+      op('2'),
+    ],
+  });
+  const store = createOfflineStore(m.persistence, { saveDelayMs: 5 });
+  await store.init();
+  assert.equal(store.peek('me:patient'), null);
+  assert.ok(store.peek('me:user'), 'lo demás de la cuenta se conserva');
+  assert.deepEqual(
+    store.ops.map((o) => o.path),
+    ['/patients/me/basic', '/x/2'],
+  );
+  assert.equal(m.resets.length, 1);
+  assert.equal(m.saves.length, 0);
+  assert.equal(m.resets[0].version, 2);
+  for (const value of ['Penicilina', 'V-12345678']) assert.ok(!JSON.stringify(m.resets[0]).includes(value));
+  store.put('me:notices', []);
+  await wait(30);
+  assert.equal(m.resets.length, 1, 'solo la primera vez');
+  assert.equal(m.saves.length, 1);
 });
 
 test('copia local: un cambio pendiente se guarda enseguida', async () => {
@@ -235,7 +269,7 @@ test('copia local: un cambio pendiente se guarda enseguida', async () => {
 
 test('copia local: al cerrar sesión se borra lo de la cuenta y se reemplaza todo lo guardado', async () => {
   const m = memory({
-    version: 1,
+    version: 2,
     entries: { 'me:user': { savedAt: 1, data: { id: 'u1' } }, 'pub:doctor:ana': { savedAt: 1, data: {} } },
     ops: [op('1'), op('2', { userId: 'u2' })],
   });
