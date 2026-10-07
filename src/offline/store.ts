@@ -51,10 +51,14 @@ export interface Persistence {
   reset(snapshot: OfflineSnapshot): Promise<void>;
 }
 
-/** Cuántas páginas del directorio y fichas de médicos se guardan como máximo (las más recientes). */
+/**
+ * Cuántas páginas del directorio, fichas de médicos y semanas de la agenda se
+ * guardan como máximo (las más recientes).
+ */
 export const LIMITS: readonly (readonly [prefix: string, max: number])[] = [
   ['pub:directory:', 30],
   ['pub:doctor:', 40],
+  ['me:calendar:', 12],
 ];
 
 export interface StoreOptions {

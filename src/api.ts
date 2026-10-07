@@ -5,6 +5,12 @@ import { errorMessage } from './contracts';
 import { net } from './offline/net';
 
 export { API_URL, SITE_URL } from './config';
+/**
+ * La app recibe y manda su refresh token en el cuerpo (no usa la cookie de la
+ * web): la plataforma lo hace solo con esta cabecera y sin cabecera Origin.
+ * En la versión web (pruebas) no se manda: el navegador usa la cookie.
+ */
+const APP_HEADER: Record<string, string> = Platform.OS === 'web' ? {} : { 'X-Client': 'mobile-app' };
 let accessToken: string | null = null;
 let refreshPromise: Promise<RefreshOutcome> | null = null;
 let onExpired = () => {};
@@ -60,6 +66,7 @@ export async function request<T>(path: string, method = 'GET', body?: unknown, r
       credentials: 'include',
       signal: controller.signal,
       headers: {
+        ...APP_HEADER,
         ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
@@ -107,11 +114,86 @@ export async function request<T>(path: string, method = 'GET', body?: unknown, r
   return data as T;
 }
 
-interface Login {
+export interface Login {
   accessToken?: string;
   refreshToken?: string;
   mfaRequired?: boolean;
   challengeToken?: string;
+}
+
+/** Un archivo elegido en el teléfono (foto o documento) para subirlo. */
+export interface PickedFile {
+  uri: string;
+  name: string;
+  type: string;
+  /** Bytes, si el sistema lo informa (se avisa antes de subir algo muy pesado). */
+  size?: number;
+}
+
+/** Envía un archivo (multipart, campo `file`). Renueva la sesión una vez si venció. */
+export async function upload<T>(path: string, file: PickedFile, retry = true): Promise<T> {
+  const generation = sessionGeneration;
+  const form = new FormData();
+  // React Native acepta { uri, name, type } como archivo de un formulario.
+  form.append('file', { uri: file.uri, name: file.name, type: file.type } as unknown as Blob);
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { ...APP_HEADER, ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+      body: form,
+    });
+  } catch {
+    net.unreachable();
+    throw new OfflineError('No se pudo enviar el archivo: revisa tu conexión e intenta de nuevo.');
+  }
+  if (response.status >= 502 && response.status <= 504) {
+    net.unreachable();
+    throw new OfflineError('La plataforma no responde en este momento. Intenta de nuevo en unos minutos.');
+  }
+  net.reachable();
+  if (response.status === 401 && retry && accessToken && generation === sessionGeneration) {
+    if ((await refreshSessionStatus()) === 'ok') return upload<T>(path, file, false);
+  }
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new ApiError(response.status, errorMessage(data, 'No se pudo subir el archivo.'));
+  return data as T;
+}
+
+/** Descarga un archivo de la plataforma (un PDF, una copia de datos) con la sesión. */
+export async function download(
+  path: string,
+  method: 'GET' | 'POST' = 'GET',
+  body?: unknown,
+  retry = true,
+): Promise<ArrayBuffer> {
+  const generation = sessionGeneration;
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      method,
+      credentials: 'include',
+      headers: {
+        ...APP_HEADER,
+        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch {
+    net.unreachable();
+    throw new OfflineError('No se pudo descargar: revisa tu conexión e intenta de nuevo.');
+  }
+  net.reachable();
+  if (response.status === 401 && retry && accessToken && generation === sessionGeneration) {
+    if ((await refreshSessionStatus()) === 'ok') return download(path, method, body, false);
+  }
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new ApiError(response.status, errorMessage(data, 'No se pudo descargar el archivo.'));
+  }
+  return response.arrayBuffer();
 }
 export async function acceptLogin(result: Login) {
   if (!result.accessToken) throw new Error('No se recibió una sesión completa.');

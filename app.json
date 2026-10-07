@@ -2,13 +2,57 @@
   "expo": {
     "name": "Guía Médica Monagas",
     "slug": "guia-medica-monagas-app",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "orientation": "default",
     "scheme": "guiamedicamonagas",
     "userInterfaceStyle": "light",
-    "android": { "package": "com.guiamedicamonagas.app", "permissions": [], "blockedPermissions": ["android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.SYSTEM_ALERT_WINDOW"], "allowBackup": false, "versionCode": 1 },
-    "ios": { "bundleIdentifier": "com.guiamedicamonagas.app", "supportsTablet": true, "buildNumber": "1" },
-    "plugins": ["expo-secure-store", "./plugins/withAndroidBranding"],
-    "extra": { "apiUrl": "https://guiamedicamonagas.com/api/v1" }
+    "android": {
+      "package": "com.guiamedicamonagas.app",
+      "permissions": [],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO"
+      ],
+      "allowBackup": false,
+      "versionCode": 2
+    },
+    "ios": {
+      "bundleIdentifier": "com.guiamedicamonagas.app",
+      "supportsTablet": true,
+      "buildNumber": "1"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "./plugins/withAndroidBranding",
+      "expo-router",
+      "@react-native-community/datetimepicker",
+      "expo-sharing",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "La cámara se usa solo para leer el QR de un paciente o fotografiar un documento. La imagen no se guarda.",
+          "recordAudioAndroid": false,
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Para elegir tu foto de perfil o un documento.",
+          "cameraPermission": "Para fotografiar un documento, tu firma o tu sello.",
+          "microphonePermission": false
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "https://guiamedicamonagas.com/api/v1"
+    }
   }
 }

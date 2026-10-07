@@ -1,9 +1,22 @@
+export type LegalDocumentKey =
+  'TERMS' | 'PRIVACY' | 'PROFESSIONAL_TERMS' | 'PATIENT_HEALTH_CONSENT' | 'AGE_DECLARATION';
+
 export interface User {
   id: string;
   email: string;
   role: string;
   isEmailVerified: boolean;
   needsLegalAcceptance?: boolean;
+  pendingLegalDocuments?: LegalDocumentKey[];
+  createdAt?: string;
+  professionalProfile?: {
+    id: string;
+    slug: string;
+    firstName: string;
+    lastName: string;
+    verificationStatus: string;
+    isPublished: boolean;
+  } | null;
 }
 export interface Doctor {
   id: string;
@@ -15,7 +28,71 @@ export interface Doctor {
   municipality?: string | null;
   verificationStatus: string;
   bookingEnabled?: boolean;
-  specialties: { specialty: { name: string } }[];
+  specialties: { specialty: { name: string; slug?: string } }[];
+  planTier?: string;
+  isFeatured?: boolean;
+  whatsapp?: string | null;
+  canReceiveMessages?: boolean;
+  ratingAverage?: number | null;
+  ratingCount?: number;
+  publicCode?: string | null;
+  mppsNumber?: string | null;
+  colmedMonagasNumber?: string | null;
+}
+
+/** Ficha pública completa de un médico (GET /professionals/:slug). */
+export interface DoctorProfile extends Doctor {
+  phone?: string | null;
+  address?: string | null;
+  seoDescription?: string | null;
+  presentationVideoId?: string | null;
+  locations: {
+    id: string;
+    name: string;
+    address?: string | null;
+    municipality?: string | null;
+    phone?: string | null;
+  }[];
+  posts: { id: string; title: string; slug: string; content: string; createdAt: string }[];
+  socialLinks: { platform: string; url: string }[];
+  registrations: {
+    type: string;
+    issuer: string;
+    jurisdiction?: string | null;
+    number: string;
+    verifiedAt?: string | null;
+  }[];
+  organizations: { organization: { slug: string; name: string; type: string } }[];
+}
+
+export interface DirectoryPage {
+  items: Doctor[];
+  total?: number;
+  page?: number;
+  totalPages: number;
+  featured?: Doctor[];
+}
+
+export interface Specialty {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface Municipality {
+  id: string;
+  name: string;
+}
+
+export const SOCIAL_LABELS: Record<string, string> = {
+  INSTAGRAM: 'Instagram',
+  FACEBOOK: 'Facebook',
+  TIKTOK: 'TikTok',
+  WEBSITE: 'Sitio web',
+};
+
+export function doctorName(d: { firstName: string; lastName: string }) {
+  return `Dr(a). ${d.firstName} ${d.lastName}`;
 }
 export interface Appointment {
   id: string;
@@ -31,6 +108,14 @@ export interface Notice {
   content: string;
   isRead: boolean;
   createdAt: string;
+  type?: string;
+  /** Ruta de la web a la que lleva el aviso (en la app se abre su pantalla: src/links.ts). */
+  link?: string | null;
+}
+
+export interface NoticePage {
+  items: Notice[];
+  nextCursor: string | null;
 }
 export const labels: Record<string, string> = {
   PENDING: 'Pendiente',

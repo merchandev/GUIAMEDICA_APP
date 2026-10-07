@@ -8,6 +8,10 @@ Abrir `E:\PROYECTO SEPTIEMBRE 2026\GUIA MEDICA APP\android` y esperar la sincron
 
 En Settings → Build, Execution, Deployment → Build Tools → Gradle, seleccionar Java 17. En este equipo Gradle provisionó `C:\Users\merch\.gradle\jdks\eclipse_adoptium-17-amd64-windows.2`. El script de build encuentra ese JDK sin modificar las variables de entorno globales de Windows.
 
+- No usar el JDK 25 que trae Android Studio: la configuración de CMake falla con «A restricted method in java.lang.System has been called».
+- La carpeta `android/` se genera con `npx expo prebuild --platform android --no-install`. Los ajustes propios (icono, sin copias de seguridad, memoria de Gradle) están en `plugins/withAndroidBranding.js`, así que sobreviven al regenerarla.
+- `react-native.config.js` deja fuera del código nativo `react-native-gesture-handler` y `react-native-reanimated`. Los instala expo-router, pero la app no los usa. Enlazados, además, la ruta de uno de sus archivos compilados pasa los 260 caracteres de Windows desde esta carpeta.
+
 ## Compilar
 
 Desde la carpeta principal:

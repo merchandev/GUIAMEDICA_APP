@@ -136,6 +136,14 @@ export function resyncAll() {
   notify('all');
 }
 
+/**
+ * Un cambio hecho desde la app: las pantallas de esos temas (por ejemplo, el
+ * contador de avisos de la pestaña) se ponen al día sin esperar al canal.
+ */
+export function changedLocally(...topics: RealtimeTopic[]) {
+  notify(new Set(topics));
+}
+
 /** Qué hacer cuando la plataforma avisa que la sesión cambió (revisarla). */
 export function setSessionListener(listener: (() => void) | null) {
   sessionListener = listener;

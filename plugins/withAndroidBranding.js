@@ -1,4 +1,4 @@
-const { withAndroidManifest, withDangerousMod } = require('expo/config-plugins');
+const { withAndroidManifest, withDangerousMod, withGradleProperties } = require('expo/config-plugins');
 const fs = require('node:fs');
 const path = require('node:path');
 const icon = `<?xml version="1.0" encoding="utf-8"?>
@@ -8,6 +8,15 @@ const icon = `<?xml version="1.0" encoding="utf-8"?>
   <path android:fillColor="#B8DACB" android:pathData="M18,90h72v4h-72z" />
 </vector>`;
 module.exports = function withAndroidBranding(config) {
+  // Con los módulos de la app completa, el análisis de la compilación de publicación
+  // (lint) se queda sin memoria con los 512 MB de metaspace por defecto.
+  config = withGradleProperties(config, (mod) => {
+    const key = 'org.gradle.jvmargs';
+    const value = '-Xmx4096m -XX:MaxMetaspaceSize=1024m';
+    mod.modResults = mod.modResults.filter((item) => !(item.type === 'property' && item.key === key));
+    mod.modResults.push({ type: 'property', key, value });
+    return mod;
+  });
   config = withAndroidManifest(config, (mod) => {
     const app = mod.modResults.manifest.application[0].$;
     app['android:icon'] = '@drawable/gmm_launcher';
