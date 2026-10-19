@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   ActivityIndicator,
+  Easing,
   Image,
   Modal,
   Platform,
@@ -650,10 +652,32 @@ export function Empty({ title, description, children }: Children & { title: stri
 }
 
 export function Loading({ label = 'Cargando…' }: { label?: string }) {
+  const turn = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const animation = Animated.loop(Animated.timing(turn, {
+      toValue: 1,
+      duration: 1000,
+      easing: Easing.linear,
+      useNativeDriver: true,
+    }));
+    animation.start();
+    return () => animation.stop();
+  }, [turn]);
+  const rotate = turn.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
   return (
-    <View style={s.loading} accessibilityLabel={label}>
-      <ActivityIndicator color={colors.primary} />
-      <Muted>{label}</Muted>
+    <View style={s.loadingScreen} accessibilityRole="progressbar" accessibilityLabel={label}>
+      <View style={s.loadingSymbol}>
+        <View style={s.loadingBrandMark}>
+          <View style={s.loadingCrossV} />
+          <View style={s.loadingCrossH} />
+        </View>
+        <Animated.View style={[s.loadingOrbit, { transform: [{ rotate }] }]}>
+          <View style={s.loadingOrbitDot} />
+        </Animated.View>
+      </View>
+      <Text style={s.loadingBrand}>GUÍA MÉDICA</Text>
+      <Text style={s.loadingLabel}>{label}</Text>
+      <View style={s.loadingTrack}><View style={s.loadingTrackFill} /></View>
     </View>
   );
 }
@@ -815,6 +839,17 @@ export const s = StyleSheet.create({
   empty: { alignItems: 'center', gap: 8, paddingVertical: 28, paddingHorizontal: 12 },
   emptyTitle: { fontSize: 17, color: colors.heading, fontWeight: '700', textAlign: 'center' },
   loading: { alignItems: 'center', gap: 10, paddingVertical: 36 },
+  loadingScreen: { flex: 1, minHeight: 220, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  loadingSymbol: { width: 78, height: 78, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
+  loadingBrandMark: { width: 58, height: 58, borderRadius: 29, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  loadingCrossV: { position: 'absolute', width: 11, height: 32, borderRadius: 4, backgroundColor: colors.white },
+  loadingCrossH: { position: 'absolute', width: 32, height: 11, borderRadius: 4, backgroundColor: colors.white },
+  loadingOrbit: { position: 'absolute', width: 76, height: 76, borderWidth: 2, borderColor: colors.border, borderTopColor: colors.accent, borderRadius: 38 },
+  loadingOrbitDot: { position: 'absolute', top: -3, alignSelf: 'center', width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent },
+  loadingBrand: { color: colors.heading, fontWeight: '800', fontSize: 14, letterSpacing: 1.8, marginTop: 6 },
+  loadingLabel: { color: colors.muted, fontSize: 14 },
+  loadingTrack: { width: 96, height: 3, borderRadius: 2, backgroundColor: colors.border, overflow: 'hidden', marginTop: 4 },
+  loadingTrackFill: { width: 44, height: 3, borderRadius: 2, backgroundColor: colors.accent },
   kv: { gap: 2 },
   kvLabel: { fontSize: 12, color: colors.muted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   kvValue: { fontSize: 15, color: colors.text },
