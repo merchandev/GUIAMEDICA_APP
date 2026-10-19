@@ -33,8 +33,8 @@ export default function RecoverScreen() {
     reset.run(async () => {
       const token = tokenFrom(link);
       if (token.length < 20) throw new Error('Pega el enlace completo que te llegó por correo.');
-      if (password.length < 10 || !PASSWORD.test(password))
-        throw new Error('La contraseña necesita al menos 10 caracteres, con letras y números.');
+      if (password.length < 6 || !PASSWORD.test(password))
+        throw new Error('La contraseña necesita al menos 6 caracteres, con letras y números.');
       if (password !== confirm) throw new Error('Las contraseñas no coinciden.');
       await request('/auth/reset-password', 'POST', { token, newPassword: password });
       Alert.alert('Contraseña actualizada', 'Ya puedes iniciar sesión con tu nueva contraseña.');
@@ -93,7 +93,7 @@ export default function RecoverScreen() {
           secure
           autoComplete="new-password"
           maxLength={72}
-          hint="Mínimo 10 caracteres, con letras y números."
+          hint="Mínimo 6 caracteres, con letras y números."
         />
         <Field
           label="Confirmar contraseña"

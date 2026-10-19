@@ -16,6 +16,7 @@ import {
   Body,
   Button,
   Card,
+  CedulaField,
   colors,
   DateField,
   ErrorText,
@@ -102,7 +103,7 @@ const toForm = (p: Profile): Form => ({
 const same = (a: Form, b: Form) => JSON.stringify(a) === JSON.stringify(b);
 
 const PHONE = /^0(412|414|416|424|426)-?\d{7}$/;
-const CEDULA = /^[VEJPG]-?\d{5,9}$/i;
+const CEDULA_NUMBER = /^\d{5,9}$/;
 const IDENTITY: Record<Profile['identityStatus'], { label: string; tone: 'warning' | 'success' | 'danger' }> = {
   PENDING: { label: 'En revisión', tone: 'warning' },
   VERIFIED: { label: 'Verificada', tone: 'success' },
@@ -131,6 +132,7 @@ export default function PatientProfileScreen() {
   const profile = useApi<Profile>(user ? '/patients/me' : null, { topics: ['patientProfile'] });
   const [form, setForm] = useState<Form | null>(null);
   const [base, setBase] = useState<Profile | null>(null);
+  const [cedulaPrefix, setCedulaPrefix] = useState<'V' | 'E'>('V');
   const [saved, setSaved] = useState(false);
   const save = useAction();
   const photo = useAction();
@@ -194,10 +196,10 @@ export default function PatientProfileScreen() {
       if (form.phone.trim() && !PHONE.test(form.phone.trim())) throw new Error('Teléfono inválido (ej. 0414-1234567).');
       if (form.emergencyMedicalPhone.trim() && !PHONE.test(form.emergencyMedicalPhone.trim()))
         throw new Error('Número de emergencia inválido (ej. 0414-1234567).');
-      if (!base.cedula && form.cedula.trim() && !CEDULA.test(form.cedula.trim()))
-        throw new Error('Cédula inválida (ej. V-12345678).');
+      if (!base.cedula && form.cedula.trim() && !CEDULA_NUMBER.test(form.cedula.trim()))
+        throw new Error('Número de cédula inválido (5 a 9 dígitos).');
       const updated = await request<Profile>('/patients/me', 'PATCH', {
-        cedula: !base.cedula && form.cedula.trim() ? form.cedula.trim().toUpperCase() : undefined,
+        cedula: !base.cedula && form.cedula.trim() ? `${cedulaPrefix}-${form.cedula.trim()}` : undefined,
         phone: form.phone.trim() || undefined,
         birthDate: form.birthDate || undefined,
         sex: form.sex || undefined,
@@ -318,13 +320,13 @@ export default function PatientProfileScreen() {
               hint="Para corregirla, usa «Reclamos y solicitudes»"
             />
           ) : (
-            <Field
+            <CedulaField
               label="Cédula de identidad"
-              value={form.cedula}
-              onChangeText={(v) => set('cedula', v)}
-              placeholder="V-12345678"
-              autoCapitalize="characters"
-              maxLength={12}
+              prefix={cedulaPrefix}
+              number={form.cedula}
+              onChangePrefix={setCedulaPrefix}
+              onChangeNumber={(v) => set('cedula', v)}
+              hint="Elige V (venezolano) o E (extranjero) y escribe solo el número."
             />
           )}
           <Field

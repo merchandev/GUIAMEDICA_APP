@@ -250,6 +250,72 @@ export function Field({
   );
 }
 
+/**
+ * Cédula de identidad sin tener que escribir la letra: el usuario elige V
+ * (venezolano, por defecto) o E (extranjero) con un selector y solo escribe el
+ * número. Entrega las partes por separado para validarlas; el número se limpia
+ * a solo dígitos mientras se escribe.
+ */
+export function CedulaField({
+  label,
+  prefix,
+  number,
+  onChangePrefix,
+  onChangeNumber,
+  hint,
+  error,
+}: {
+  label: string;
+  prefix: 'V' | 'E';
+  number: string;
+  onChangePrefix: (prefix: 'V' | 'E') => void;
+  onChangeNumber: (number: string) => void;
+  hint?: string;
+  error?: string | null;
+}) {
+  return (
+    <View style={s.field}>
+      <Text style={s.label}>{label}</Text>
+      <View style={s.cedulaRow}>
+        <View style={s.segment} accessibilityRole="radiogroup" accessibilityLabel={`${label}: nacionalidad`}>
+          {(['V', 'E'] as const).map((option, index) => {
+            const on = prefix === option;
+            return (
+              <Pressable
+                key={option}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: on }}
+                accessibilityLabel={option === 'V' ? 'Venezolano' : 'Extranjero'}
+                onPress={() => onChangePrefix(option)}
+                style={[
+                  s.segmentButton,
+                  index > 0 && { borderLeftWidth: 1, borderLeftColor: colors.inputBorder },
+                  on && s.segmentButtonOn,
+                ]}
+              >
+                <Text style={[s.segmentText, on && s.segmentTextOn]}>{option}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <TextInput
+          accessibilityLabel={`${label}, número`}
+          accessibilityHint={hint}
+          value={number}
+          onChangeText={(text) => onChangeNumber(text.replace(/\D/g, ''))}
+          placeholder="12345678"
+          placeholderTextColor={colors.placeholder}
+          keyboardType="number-pad"
+          maxLength={9}
+          style={[s.input, { flex: 1 }, !!error && { borderColor: colors.danger }]}
+        />
+      </View>
+      {!!hint && !error && <Text style={s.hint}>{hint}</Text>}
+      {!!error && <Text style={s.fieldError}>{error}</Text>}
+    </View>
+  );
+}
+
 export interface Option {
   value: string;
   label: string;
@@ -613,6 +679,12 @@ export const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     gap: 8,
+    // Profundidad suave, igual que las tarjetas de la web (sombra tenue).
+    shadowColor: '#13231d',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   section: { gap: 10 },
   sectionHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
@@ -656,6 +728,25 @@ export const s = StyleSheet.create({
     color: colors.text,
   },
   inputOff: { backgroundColor: colors.background, color: colors.muted },
+  cedulaRow: { flexDirection: 'row', alignItems: 'stretch', gap: 8 },
+  segment: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    borderRadius: radius.m,
+    overflow: 'hidden',
+    backgroundColor: colors.white,
+  },
+  segmentButton: {
+    minWidth: 46,
+    minHeight: TOUCH,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  segmentButtonOn: { backgroundColor: colors.primary },
+  segmentText: { fontSize: 16, fontWeight: '700', color: colors.text },
+  segmentTextOn: { color: colors.white },
   select: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   selectText: { flex: 1, fontSize: 16, color: colors.text },
   chevron: { fontSize: 18, color: colors.muted },

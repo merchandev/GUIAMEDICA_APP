@@ -2,12 +2,13 @@
   "expo": {
     "name": "Guía Médica Monagas",
     "slug": "guia-medica-monagas-app",
-    "version": "0.2.0",
+    "version": "0.3.3",
     "orientation": "default",
     "scheme": "guiamedicamonagas",
     "userInterfaceStyle": "light",
     "android": {
       "package": "com.guiamedicamonagas.app",
+      "googleServicesFile": "./google-services.json",
       "permissions": [],
       "blockedPermissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -21,7 +22,7 @@
         "android.permission.READ_MEDIA_AUDIO"
       ],
       "allowBackup": false,
-      "versionCode": 2
+      "versionCode": 6
     },
     "ios": {
       "bundleIdentifier": "com.guiamedicamonagas.app",
@@ -34,6 +35,12 @@
       "expo-router",
       "@react-native-community/datetimepicker",
       "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "color": "#125545"
+        }
+      ],
       [
         "expo-camera",
         {

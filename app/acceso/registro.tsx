@@ -7,9 +7,9 @@ import type { LegalDocumentKey } from '../../src/contracts';
 import { useAction } from '../../src/data';
 import { requiredLegalDocuments } from '../../src/legal';
 import { useSession } from '../../src/session';
-import { Body, Button, Card, Chip, ErrorText, Field, Notice, Row, Screen, Title } from '../../src/ui';
+import { Body, Button, Card, CedulaField, Chip, ErrorText, Field, Notice, Row, Screen, Title } from '../../src/ui';
 
-const CEDULA = /^[VEJPG]-?\d{5,9}$/i;
+const CEDULA_NUMBER = /^\d{5,9}$/;
 const PASSWORD = /^(?=.*[A-Za-z])(?=.*\d).+$/;
 type Role = 'USER' | 'PROFESSIONAL';
 
@@ -20,7 +20,8 @@ export default function RegisterScreen() {
   const [role, setRole] = useState<Role>(tipo === 'medico' ? 'PROFESSIONAL' : 'USER');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [cedula, setCedula] = useState('');
+  const [cedulaPrefix, setCedulaPrefix] = useState<'V' | 'E'>('V');
+  const [cedulaNumber, setCedulaNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -30,10 +31,10 @@ export default function RegisterScreen() {
 
   const problems = (() => {
     if (!firstName.trim() || !lastName.trim()) return 'Escribe tus nombres y apellidos.';
-    if (role === 'USER' && !CEDULA.test(cedula.trim())) return 'Escribe tu cédula (ej. V-12345678).';
+    if (role === 'USER' && !CEDULA_NUMBER.test(cedulaNumber)) return 'Escribe el número de tu cédula (5 a 9 dígitos).';
     if (!/^\S+@\S+\.\S+$/.test(email.trim())) return 'Escribe un correo válido.';
-    if (password.length < 10 || !PASSWORD.test(password))
-      return 'La contraseña necesita al menos 10 caracteres, con letras y números.';
+    if (password.length < 6 || !PASSWORD.test(password))
+      return 'La contraseña necesita al menos 6 caracteres, con letras y números.';
     if (password !== confirm) return 'Las contraseñas no coinciden.';
     if (!allAccepted(documents, accepted)) return 'Para crear la cuenta, marca todas las casillas de aceptación.';
     return null;
@@ -52,7 +53,7 @@ export default function RegisterScreen() {
         acceptProfessionalTerms: role === 'PROFESSIONAL' ? true : undefined,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        cedula: role === 'USER' ? cedula.trim().toUpperCase() : undefined,
+        cedula: role === 'USER' ? `${cedulaPrefix}-${cedulaNumber}` : undefined,
       });
       await acceptSession(result);
       setPassword('');
@@ -96,14 +97,13 @@ export default function RegisterScreen() {
           maxLength={80}
         />
         {role === 'USER' && (
-          <Field
+          <CedulaField
             label="Cédula de identidad"
-            value={cedula}
-            onChangeText={setCedula}
-            placeholder="V-12345678"
-            autoCapitalize="characters"
-            maxLength={12}
-            hint="Se guarda cifrada; ningún médico la ve sin tu autorización."
+            prefix={cedulaPrefix}
+            number={cedulaNumber}
+            onChangePrefix={setCedulaPrefix}
+            onChangeNumber={setCedulaNumber}
+            hint="Elige V (venezolano) o E (extranjero) y escribe solo el número. Se guarda cifrada; ningún médico la ve sin tu autorización."
           />
         )}
         <Field
@@ -122,7 +122,7 @@ export default function RegisterScreen() {
           secure
           autoComplete="new-password"
           maxLength={72}
-          hint="Mínimo 10 caracteres, con letras y números."
+          hint="Mínimo 6 caracteres, con letras y números."
         />
         <Field
           label="Confirmar contraseña"

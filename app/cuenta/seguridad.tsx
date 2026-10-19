@@ -23,8 +23,8 @@ export default function SecurityScreen() {
     change.run(async () => {
       setChanged(false);
       if (!current) throw new Error('Escribe tu contraseña actual.');
-      if (next.length < 10 || !PASSWORD.test(next))
-        throw new Error('La nueva contraseña necesita al menos 10 caracteres, con letras y números.');
+      if (next.length < 6 || !PASSWORD.test(next))
+        throw new Error('La nueva contraseña necesita al menos 6 caracteres, con letras y números.');
       if (next === current) throw new Error('La nueva contraseña debe ser distinta de la actual.');
       if (next !== confirm) throw new Error('Las contraseñas no coinciden.');
       await acceptSession(
@@ -58,7 +58,7 @@ export default function SecurityScreen() {
           secure
           autoComplete="new-password"
           maxLength={72}
-          hint="Mínimo 10 caracteres, con letras y números."
+          hint="Mínimo 6 caracteres, con letras y números."
         />
         <Field
           label="Confirmar nueva contraseña"

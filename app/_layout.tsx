@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { router, Stack, useRootNavigationState, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as Notifications from 'expo-notifications';
 import { clearDownloads } from '../src/media';
+import { registerPushToken } from '../src/push';
+import { routeForPushData } from '../src/push-routing';
 import { SessionProvider, useSession } from '../src/session';
 import { colors, Loading } from '../src/ui';
 
@@ -36,6 +39,26 @@ function Navigation() {
   useEffect(() => {
     clearDownloads();
   }, [userId]);
+
+  // Con sesión activa, registramos el token de notificaciones push de este
+  // teléfono (pide permiso la primera vez). Al cerrar sesión se borra en signOut.
+  useEffect(() => {
+    if (userId) void registerPushToken();
+  }, [userId]);
+
+  // Al tocar una notificación, abrimos la pantalla interna que indique su
+  // enlace (nunca la web). Cubre también abrir la app desde el aviso (arranque en frío).
+  const lastResponse = Notifications.useLastNotificationResponse();
+  const handledResponse = useRef<string | null>(null);
+  useEffect(() => {
+    if (!ready || !user || !lastResponse) return;
+    const request = lastResponse.notification.request;
+    const marker = `${request.identifier}:${lastResponse.actionIdentifier}`;
+    if (handledResponse.current === marker) return;
+    handledResponse.current = marker;
+    const route = routeForPushData(request.content.data);
+    if (route) router.push(route);
+  }, [ready, user, lastResponse]);
 
   // Unos milisegundos, mientras se lee la copia guardada (cifrada) del teléfono.
   if (!booted) return <Loading label="Abriendo…" />;

@@ -34,7 +34,9 @@ npm start
 
 Usar Android físico o emulador con una versión compatible con Expo SDK 57. Para previsualización web: `npm run web`. Configurar EXPO_PUBLIC_API_URL para pruebas; nunca poner secretos en variables EXPO_PUBLIC.
 
-## Implementado (versión 0.2.0, ACT-0053 de la plataforma)
+Para compilar Android con push, coloca el archivo Firebase `google-services.json` en la raíz del proyecto (está excluido de Git) y configura `FCM_SERVICE_ACCOUNT_FILE` o `FCM_SERVICE_ACCOUNT_JSON` en el servidor de la plataforma. El transporte actual usa FCM directamente y registra tokens solo en Android; la integración de push de iOS con APNs todavía no está implementada.
+
+## Implementado (versión 0.3.3, ACT-0053 de la plataforma)
 
 La app es nativa y completa para pacientes y médicos: no manda a la web. La administración y las organizaciones se gestionan solo en la web. Navegación con Expo Router (carpeta `app/`); componentes comunes en `src/ui`; la sesión en `src/session.tsx`; los datos de cada pantalla con `useApi` (`src/data.ts`).
 
@@ -47,6 +49,7 @@ La app es nativa y completa para pacientes y médicos: no manda a la web. La adm
 - Textos legales vigentes: se leen dentro de la app. El visor carga la página del sitio sin su encabezado ni su pie, y no abre otras páginas del sitio. Cuando cambia una versión, la app pide aceptarla.
 - Reclamos y solicitudes (con o sin cuenta) y consulta de su estado.
 - Avisos con «marcar leído» (también sin conexión); cada aviso abre su pantalla de la app (`src/links.ts`). Correos opcionales y seguridad (cambiar la contraseña, cerrar todas las sesiones).
+- Notificaciones push Android por FCM, con navegación a la pantalla interna correspondiente y eliminación del token al cerrar sesión. El servidor puede tener FCM desactivado si no se configura su cuenta de servicio.
 
 **Paciente**
 
@@ -73,7 +76,7 @@ La app es nativa y completa para pacientes y médicos: no manda a la web. La adm
 
 ## Límites de esta entrega
 
-No es todavía una publicación en Google Play. Falta lo que depende del titular: cuenta de organización con D-U-N-S, clave de publicación, declaraciones de la tienda y revisión del abogado. Faltan también los avisos push (FCM), los App Links verificados (hoy el enlace de recuperación del correo se pega en la app) y las pruebas en un teléfono físico.
+No es todavía una publicación en Google Play. Falta lo que depende del titular: cuenta de organización con D-U-N-S, clave de publicación, declaraciones de la tienda y revisión del abogado. Falta integrar push de iOS con APNs, verificar App Links (hoy el enlace de recuperación del correo se pega en la app) y repetir las pruebas en un teléfono físico.
 
 El identificador Android com.guiamedicamonagas.app es provisional hasta confirmar titular y publicación. La compilación local usa la firma de desarrollo.
 

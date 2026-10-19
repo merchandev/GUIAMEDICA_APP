@@ -24,6 +24,7 @@ import {
   type PendingOp,
 } from './offline';
 import { restartRealtime, resyncAll, setSessionListener } from './realtime';
+import { removePushToken } from './push';
 
 /**
  * La cuenta con sesión, para toda la app.
@@ -207,6 +208,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   // Cierra la sesión y borra del teléfono los datos de la cuenta (también sin conexión).
   const signOut = useCallback(async () => {
     account.current++;
+    // Antes de cerrar (mientras aún hay sesión) borramos el token push de este teléfono.
+    await removePushToken().catch(() => {});
     try {
       await logout();
     } catch (e) {
