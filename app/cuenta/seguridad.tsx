@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import { Redirect, router, Stack } from 'expo-router';
 import { request, type Login } from '../../src/api';
 import { useAction } from '../../src/data';
@@ -7,6 +7,7 @@ import { useSession } from '../../src/session';
 import { Body, Button, Card, ErrorText, Field, Heading, Muted, Notice, Screen } from '../../src/ui';
 
 const PASSWORD = /^(?=.*[A-Za-z])(?=.*\d).+$/;
+const DELETION_POLICY_URL = 'https://guiamedicamonagas.com/eliminar-cuenta';
 
 /** Cambiar la contraseña y cerrar todas las sesiones (como «Seguridad» en la web). */
 export default function SecurityScreen() {
@@ -15,9 +16,35 @@ export default function SecurityScreen() {
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
   const [changed, setChanged] = useState(false);
+  const [delPassword, setDelPassword] = useState('');
   const change = useAction();
   const all = useAction();
+  const del = useAction();
   if (!user) return <Redirect href="/cuenta" />;
+
+  const askDeletion = () => {
+    if (!delPassword) {
+      Alert.alert('Falta tu contraseña', 'Escribe tu contraseña actual para confirmar.');
+      return;
+    }
+    Alert.alert(
+      'Eliminar mi cuenta',
+      'Tu cuenta se programará para eliminación. Cerraremos tu sesión y, si no vuelves a entrar en 30 días, borraremos tus datos de forma definitiva. ¿Continuar?',
+      [
+        { text: 'Volver', style: 'cancel' },
+        {
+          text: 'Sí, eliminar',
+          style: 'destructive',
+          onPress: () =>
+            void del.run(async () => {
+              await request('/auth/account/deletion', 'POST', { currentPassword: delPassword });
+              await signOut();
+              router.replace('/cuenta');
+            }),
+        },
+      ],
+    );
+  };
 
   const save = () =>
     change.run(async () => {
@@ -99,6 +126,33 @@ export default function SecurityScreen() {
               },
             ])
           }
+        />
+      </Card>
+      <Card>
+        <Heading>Eliminar mi cuenta</Heading>
+        <Body>
+          Al eliminarla cerramos tu sesión y empieza un plazo de 30 días. Si no vuelves a iniciar sesión en ese tiempo,
+          borramos tus datos personales de forma definitiva. Volver a entrar antes cancela la eliminación.
+        </Body>
+        <Field
+          label="Contraseña actual"
+          value={delPassword}
+          onChangeText={setDelPassword}
+          secure
+          autoComplete="current-password"
+        />
+        <ErrorText message={del.error} />
+        <Button
+          title="Eliminar mi cuenta"
+          variant="danger"
+          loading={del.busy}
+          disabled={!online}
+          onPress={askDeletion}
+        />
+        <Button
+          title="Qué se elimina y qué se conserva"
+          variant="ghost"
+          onPress={() => void Linking.openURL(DELETION_POLICY_URL)}
         />
       </Card>
     </Screen>

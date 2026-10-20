@@ -18,3 +18,7 @@ android/app/build/
 .idea/
 artifacts/
 .tools/
+
+# Firma de release (contraseñas): nunca al repo
+keystore.properties
+android/keystore.properties
