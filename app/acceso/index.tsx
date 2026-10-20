@@ -9,7 +9,7 @@ export default function LoginScreen() {
     <Screen>
       <Stack.Screen options={{ title: 'Iniciar sesión' }} />
       <Title>Bienvenido de nuevo</Title>
-      <Body>Usa tu cuenta de Guía Médica Monagas: la misma de la web.</Body>
+      <Body>Usa tu cuenta de MonagasMed: la misma de la web.</Body>
       <LoginForm onDone={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
       <Button title="Crear una cuenta" variant="secondary" onPress={() => router.replace('/acceso/registro')} />
     </Screen>

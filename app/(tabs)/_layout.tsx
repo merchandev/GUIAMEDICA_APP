@@ -42,7 +42,7 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Médicos',
-          headerTitle: 'Guía Médica Monagas',
+          headerTitle: 'MonagasMed',
           href: show(!doctor),
           tabBarIcon: icon('search'),
         }}

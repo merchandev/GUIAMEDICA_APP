@@ -124,7 +124,7 @@ export default function ShareCodeScreen() {
               variant="secondary"
               small
               onPress={() =>
-                void Share.share({ message: `Mi código de paciente en Guía Médica Monagas: ${data.code}\n${data.url}` })
+                void Share.share({ message: `Mi código de paciente en MonagasMed: ${data.code}\n${data.url}` })
               }
             />
           </Row>

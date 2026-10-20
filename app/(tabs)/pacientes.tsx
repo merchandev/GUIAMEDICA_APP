@@ -239,7 +239,7 @@ export default function PatientsScreen() {
                           value={`${data.identity.firstName ?? ''} ${data.identity.lastName ?? ''}`.trim()}
                         />
                         {data.identity.identityVerified && (
-                          <Muted>✓ Identidad verificada por Guía Médica Monagas</Muted>
+                          <Muted>✓ Identidad verificada por MonagasMed</Muted>
                         )}
                       </>
                     )}

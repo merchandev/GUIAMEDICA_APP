@@ -41,7 +41,7 @@ export default function AccountScreen() {
     return (
       <Screen>
         <Title>Bienvenido</Title>
-        <Body>Inicia sesión con tu cuenta de Guía Médica Monagas: la misma de la web.</Body>
+        <Body>Inicia sesión con tu cuenta de MonagasMed: la misma de la web.</Body>
         <LoginForm onDone={() => router.replace('/')} />
         <Section title="¿No tienes cuenta?">
           <List>

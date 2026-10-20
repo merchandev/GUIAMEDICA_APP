@@ -105,7 +105,7 @@ export default function DoctorScreen() {
               small
               onPress={() =>
                 void Share.share({
-                  message: `${name}, ${specialties}, en Guía Médica Monagas: ${SITE_URL}/medicos/${d.slug}`,
+                  message: `${name}, ${specialties}, en MonagasMed: ${SITE_URL}/medicos/${d.slug}`,
                 })
               }
             />
@@ -188,7 +188,7 @@ export default function DoctorScreen() {
         <Card>
           <Body>
             {d.verificationStatus === 'VERIFIED'
-              ? 'Verificado: Guía Médica Monagas revisó y aprobó todos los documentos exigidos a este profesional. La verificación es la misma para todos los planes.'
+              ? 'Verificado: MonagasMed revisó y aprobó todos los documentos exigidos a este profesional. La verificación es la misma para todos los planes.'
               : 'Verificación en curso: un administrador ya aprobó parte de sus documentos y revisa el resto. El sello de verificado se otorga con todos aprobados.'}
           </Body>
           {d.registrations.length > 0 ? (

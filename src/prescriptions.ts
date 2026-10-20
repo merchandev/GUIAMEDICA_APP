@@ -217,14 +217,14 @@ export const PRESCRIPTION_RULES: string[] = [
   'La firma y el sello que subo son míos, y el logo es de mi consultorio o del centro donde atiendo, nunca de laboratorios, medicamentos ni marcas comerciales.',
   'Mi cuenta es personal: no dejo que otra persona emita récipes con mi firma y mi sello.',
   'Si un récipe tiene un error, lo anulo y emito otro: un récipe emitido no se edita.',
-  'Guía Médica Monagas guarda una copia de cada récipe para que el paciente la vea y lo descargue, y para que la farmacia compruebe con su código que es auténtico y está vigente.',
+  'MonagasMed guarda una copia de cada récipe para que el paciente la vea y lo descargue, y para que la farmacia compruebe con su código que es auténtico y está vigente.',
 ];
 
 export const PRESCRIPTION_CONTROLLED_NOTICE =
   'No emitas aquí estupefacientes ni psicotrópicos: requieren el récipe especial u oficial que exige la autoridad sanitaria.';
 
 export const PRESCRIPTION_PATIENT_NOTICE =
-  'Tus médicos emiten estos récipes y responden por su contenido. Guía Médica Monagas no prescribe ni vende medicamentos: guarda el récipe para que lo veas, lo descargues y la farmacia compruebe con su código que es auténtico.';
+  'Tus médicos emiten estos récipes y responden por su contenido. MonagasMed no prescribe ni vende medicamentos: guarda el récipe para que lo veas, lo descargues y la farmacia compruebe con su código que es auténtico.';
 
 const longDate = (value: string) =>
   new Intl.DateTimeFormat('es-VE', { timeZone: 'America/Caracas', dateStyle: 'long' }).format(new Date(value));

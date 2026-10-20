@@ -44,7 +44,7 @@ export default function DoctorHomeScreen() {
   return (
     <Screen refreshing={own.refreshing} onRefresh={own.refresh} savedAt={own.savedAt}>
       <Title>Hola, {p.firstName}</Title>
-      <Body>Este es el estado de tu perfil en Guía Médica Monagas.</Body>
+      <Body>Este es el estado de tu perfil en MonagasMed.</Body>
       <Card>
         <Muted>Estado de verificación</Muted>
         <Row style={{ justifyContent: 'space-between' }}>

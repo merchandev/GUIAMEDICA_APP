@@ -32,6 +32,6 @@ export const REVIEW_RULES: string[] = [
   'Es tu opinión sobre la atención que recibiste: el trato, la puntualidad, la claridad de las explicaciones y el lugar de consulta.',
   'No incluyas datos de salud tuyos ni de otras personas (diagnósticos, tratamientos o medicamentos), ni teléfonos, correos, enlaces o números de cédula.',
   'Sin insultos ni acusaciones que no puedas sostener.',
-  'Si solo eliges las estrellas, tu valoración se publica al enviarla. Si escribes un comentario, el equipo de Guía Médica Monagas lo revisa antes de publicarlo y puede rechazarlo si incumple estas reglas.',
+  'Si solo eliges las estrellas, tu valoración se publica al enviarla. Si escribes un comentario, el equipo de MonagasMed lo revisa antes de publicarlo y puede rechazarlo si incumple estas reglas.',
   'Se publica como «Paciente verificado», salvo que elijas mostrar tu nombre y la inicial de tu apellido. Nunca se muestran tu cédula, tu código, tu foto ni la fecha exacta de tu consulta: solo el mes y el año.',
 ];

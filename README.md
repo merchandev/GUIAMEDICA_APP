@@ -1,4 +1,4 @@
-# Guía Médica Monagas · Android e iOS
+# MonagasMed · Android e iOS
 
 Proyecto independiente creado el 6 de octubre de 2026. Interfaz nativa Expo/React Native compartida para Android, iPhone e iPad, conectada a la misma API que la web: https://guiamedicamonagas.com/api/v1. Ver MULTIPLATAFORMA.md para configuración, diseño y validaciones pendientes.
 

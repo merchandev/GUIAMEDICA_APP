@@ -1,4 +1,4 @@
-# Android — Guía Médica Monagas
+# Android — MonagasMed
 
 Proyecto nativo generado el 6 de octubre de 2026 en `android/`. El código React Native sigue compartido con iOS. Esta entrega amplía la app de desarrollo; no equivale a implementar todos los módulos del plan ni a publicar en Google Play.
 

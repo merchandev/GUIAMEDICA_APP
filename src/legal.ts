@@ -120,15 +120,15 @@ export const legalByPath = (path: string) => LEGAL_DOCS.find((d) => d.path === p
 
 /** Avisos que acompañan las pantallas de salud (los mismos de la web). */
 export const MEDICAL_DISCLAIMER =
-  'Guía Médica Monagas es un directorio tecnológico. No presta atención médica, veterinaria, estética ni de emergencia; no diagnostica, prescribe ni recomienda tratamientos y no vende medicamentos, alimentos o productos sanitarios.';
+  'MonagasMed es un directorio tecnológico. No presta atención médica, veterinaria, estética ni de emergencia; no diagnostica, prescribe ni recomienda tratamientos y no vende medicamentos, alimentos o productos sanitarios.';
 export const EMERGENCY_NOTICE =
   'Este servicio no es de emergencias. Ante una urgencia, acude al centro de salud más cercano o llama a los servicios de emergencia de tu localidad.';
 export const VERIFICATION_NOTICE =
-  'La verificación indica que Guía Médica Monagas realizó las comprobaciones documentales definidas en su Política de verificación. No constituye una recomendación clínica, certificación estatal adicional, garantía de calidad asistencial ni garantía de resultados.';
+  'La verificación indica que MonagasMed realizó las comprobaciones documentales definidas en su Política de verificación. No constituye una recomendación clínica, certificación estatal adicional, garantía de calidad asistencial ni garantía de resultados.';
 
 /** Área del paciente (la misma frase de la web). */
 export const PATIENT_AREA_NOTICE =
-  'Tu información privada se utiliza exclusivamente para operar y proteger las funciones de Guía Médica Monagas. No vendemos tus datos, no los usamos para estudiar tus hábitos de consumo y no utilizamos tu información privada o de salud para entrenar modelos de lenguaje o inteligencia artificial. El acceso de un profesional requiere tu autorización cuando corresponda.';
+  'Tu información privada se utiliza exclusivamente para operar y proteger las funciones de MonagasMed. No vendemos tus datos, no los usamos para estudiar tus hábitos de consumo y no utilizamos tu información privada o de salud para entrenar modelos de lenguaje o inteligencia artificial. El acceso de un profesional requiere tu autorización cuando corresponda.';
 
 /** Versiones de los textos que acepta el paciente al compartir datos (las mismas de la web). */
 export const CONTACT_REQUEST_CONSENT_VERSION = '1.0';
@@ -198,7 +198,7 @@ export const ACCEPTANCE_DOCUMENTS: Record<
       { path: '/descargo-medico', title: 'Descargo médico' },
     ],
     statement:
-      'Acepto los Términos y condiciones y entiendo que Guía Médica Monagas es un directorio tecnológico: no presta atención médica ni de emergencia.',
+      'Acepto los Términos y condiciones y entiendo que MonagasMed es un directorio tecnológico: no presta atención médica ni de emergencia.',
   },
   PRIVACY: {
     docs: [{ path: '/privacidad', title: 'Política de privacidad' }],

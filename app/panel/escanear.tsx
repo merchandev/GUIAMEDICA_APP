@@ -58,7 +58,7 @@ export default function ScanScreen() {
       <View style={s.frame} pointerEvents="none" />
       <View style={s.footer}>
         {wrong ? (
-          <Notice tone="warning">Ese QR no es un código de paciente de Guía Médica Monagas.</Notice>
+          <Notice tone="warning">Ese QR no es un código de paciente de MonagasMed.</Notice>
         ) : (
           <Muted center>Apunta al QR que el paciente muestra en su teléfono («Mi código»).</Muted>
         )}

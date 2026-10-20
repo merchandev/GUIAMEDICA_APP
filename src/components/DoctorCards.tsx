@@ -197,7 +197,7 @@ export function DoctorShareCard({
           title="Compartir"
           variant="secondary"
           small
-          onPress={() => void Share.share({ message: `${fullName} en Guía Médica Monagas: ${url}` })}
+          onPress={() => void Share.share({ message: `${fullName} en MonagasMed: ${url}` })}
         />
       </Row>
       {!!message && <Muted>{message}</Muted>}

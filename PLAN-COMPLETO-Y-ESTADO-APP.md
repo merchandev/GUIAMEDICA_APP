@@ -1,4 +1,4 @@
-# Guía Médica Monagas — plan completo y estado de la app
+# MonagasMed — plan completo y estado de la app
 
 Fecha de consolidación: 6 de octubre de 2026.
 
@@ -6,7 +6,7 @@ Este documento reúne las peticiones para la aplicación móvil, el plan técnic
 
 ## 1. Resultado actual
 
-Existe una versión Android 0.1.0 instalable, conectada a la API productiva de Guía Médica Monagas. Se generaron un APK y un AAB de pruebas. El APK se instaló y abrió en un emulador Pixel 9 Pro.
+Existe una versión Android 0.1.0 instalable, conectada a la API productiva de MonagasMed. Se generaron un APK y un AAB de pruebas. El APK se instaló y abrió en un emulador Pixel 9 Pro.
 
 **No se ha completado todo el plan de producción.** La compilación y el arranque están comprobados; los recorridos autenticados y las escrituras todavía necesitan cuentas de ensayo. No hay sincronización instantánea, push ni publicación en Google Play. El AAB actual usa firma de desarrollo.
 

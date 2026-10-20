@@ -705,7 +705,7 @@ export function Loading({ label = 'Cargando…', visible = true }: { label?: str
         <View style={s.loadingCardAccent} />
         <View style={s.loadingEyebrow}>
           <View style={s.loadingEyebrowDot} />
-          <Text style={s.loadingEyebrowText}>GUÍA MÉDICA MONAGAS</Text>
+          <Text style={s.loadingEyebrowText}>MONAGASMED</Text>
         </View>
         <View style={s.loadingSymbol}>
           <Animated.View style={[s.loadingBrandMark, { transform: [{ rotate: '-4deg' }, { scale: breathe }] }]}>
