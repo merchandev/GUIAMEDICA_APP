@@ -651,39 +651,70 @@ export function Empty({ title, description, children }: Children & { title: stri
   );
 }
 
-export function Loading({ label = 'Cargando…' }: { label?: string }) {
+export function Loading({ label = 'Cargando…', visible = true }: { label?: string; visible?: boolean }) {
   const turn = useRef(new Animated.Value(0)).current;
   const travel = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(0)).current;
+  const fade = useRef(new Animated.Value(0)).current;
+  const lift = useRef(new Animated.Value(14)).current;
+  const [rendered, setRendered] = useState(visible);
+
   useEffect(() => {
+    if (visible) {
+      setRendered(true);
+      fade.setValue(0);
+      lift.setValue(14);
+      const entrance = Animated.parallel([
+        Animated.timing(fade, { toValue: 1, duration: 360, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.spring(lift, { toValue: 0, damping: 18, stiffness: 150, useNativeDriver: true }),
+      ]);
+      entrance.start();
+      return () => entrance.stop();
+    }
+    const exit = Animated.timing(fade, { toValue: 0, duration: 220, easing: Easing.in(Easing.cubic), useNativeDriver: true });
+    exit.start(({ finished }) => { if (finished) setRendered(false); });
+    return () => exit.stop();
+  }, [fade, lift, visible]);
+
+  useEffect(() => {
+    if (!rendered) return;
     const animation = Animated.parallel([
-      Animated.loop(Animated.timing(turn, {
-        toValue: 1,
-        duration: 1050,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })),
+      Animated.loop(Animated.timing(turn, { toValue: 1, duration: 1250, easing: Easing.linear, useNativeDriver: true })),
       Animated.loop(Animated.sequence([
-        Animated.timing(travel, { toValue: 1, duration: 1050, easing: Easing.inOut(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(travel, { toValue: 1, duration: 1250, easing: Easing.inOut(Easing.cubic), useNativeDriver: true }),
         Animated.timing(travel, { toValue: 0, duration: 0, useNativeDriver: true }),
+      ])),
+      Animated.loop(Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 900, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ])),
     ]);
     animation.start();
     return () => animation.stop();
-  }, [travel, turn]);
+  }, [pulse, rendered, travel, turn]);
+
+  if (!rendered) return null;
   const rotate = turn.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
-  const slide = travel.interpolate({ inputRange: [0, 1], outputRange: [-48, 106] });
+  const slide = travel.interpolate({ inputRange: [0, 1], outputRange: [-58, 118] });
+  const breathe = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.045] });
   return (
-    <View style={s.loadingScreen} accessibilityRole="progressbar" accessibilityLabel={label}>
+    <Animated.View style={[s.loadingScreen, { opacity: fade, transform: [{ translateY: lift }] }]} accessibilityRole="progressbar" accessibilityLabel={label}>
+      <View pointerEvents="none" style={[s.loadingBackdropOrb, s.loadingBackdropOrbTop]} />
+      <View pointerEvents="none" style={[s.loadingBackdropOrb, s.loadingBackdropOrbBottom]} />
       <View style={s.loadingCard}>
+        <View style={s.loadingCardAccent} />
         <View style={s.loadingEyebrow}>
           <View style={s.loadingEyebrowDot} />
           <Text style={s.loadingEyebrowText}>GUÍA MÉDICA MONAGAS</Text>
         </View>
         <View style={s.loadingSymbol}>
-          <View style={s.loadingBrandMark}>
+          <Animated.View style={[s.loadingBrandMark, { transform: [{ rotate: '-4deg' }, { scale: breathe }] }]}>
             <View style={s.loadingCrossV} />
             <View style={s.loadingCrossH} />
-          </View>
+            <View style={s.loadingMarkPulse}>
+              <Animated.View style={[s.loadingMarkPulseDot, { transform: [{ translateX: travel.interpolate({ inputRange: [0, 1], outputRange: [-8, 8] }) }] }]} />
+            </View>
+          </Animated.View>
           <Animated.View style={[s.loadingOrbit, { transform: [{ rotate }] }]}>
             <View style={s.loadingOrbitDot} />
           </Animated.View>
@@ -694,9 +725,9 @@ export function Loading({ label = 'Cargando…' }: { label?: string }) {
         <View style={s.loadingTrack}>
           <Animated.View style={[s.loadingTrackFill, { transform: [{ translateX: slide }] }]} />
         </View>
-        <Text style={s.loadingFooter}>POR FAVOR, ESPERA</Text>
+        <Text style={s.loadingFooter}>PREPARANDO TU ESPACIO</Text>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -857,15 +888,21 @@ export const s = StyleSheet.create({
   empty: { alignItems: 'center', gap: 8, paddingVertical: 28, paddingHorizontal: 12 },
   emptyTitle: { fontSize: 17, color: colors.heading, fontWeight: '700', textAlign: 'center' },
   loading: { alignItems: 'center', gap: 10, paddingVertical: 36 },
-  loadingScreen: { flex: 1, minHeight: 300, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', padding: 22 },
-  loadingCard: { width: '100%', maxWidth: 360, minHeight: 350, backgroundColor: colors.card, borderRadius: 24, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 28, shadowColor: '#123B2F', shadowOpacity: 0.08, shadowRadius: 24, shadowOffset: { width: 0, height: 10 }, elevation: 4 },
-  loadingEyebrow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.primarySoft, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 30 },
+  loadingScreen: { ...StyleSheet.absoluteFill, zIndex: 1000, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', padding: 22, overflow: 'hidden' },
+  loadingBackdropOrb: { position: 'absolute', borderRadius: 999, backgroundColor: colors.primarySoft, opacity: 0.62 },
+  loadingBackdropOrbTop: { width: 260, height: 260, top: -150, right: -90 },
+  loadingBackdropOrbBottom: { width: 300, height: 300, bottom: -190, left: -140 },
+  loadingCard: { width: '100%', maxWidth: 360, minHeight: 360, backgroundColor: colors.card, borderRadius: 28, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 28, overflow: 'hidden', shadowColor: '#123B2F', shadowOpacity: 0.1, shadowRadius: 28, shadowOffset: { width: 0, height: 12 }, elevation: 5 },
+  loadingCardAccent: { position: 'absolute', top: 0, left: 28, right: 28, height: 3, borderBottomLeftRadius: 3, borderBottomRightRadius: 3, backgroundColor: colors.accent },
+  loadingEyebrow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.primarySoft, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 27 },
   loadingEyebrowDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent },
   loadingEyebrowText: { color: colors.accent, fontSize: 9, fontWeight: '800', letterSpacing: 1.4 },
   loadingSymbol: { width: 92, height: 92, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  loadingBrandMark: { width: 68, height: 68, borderRadius: 24, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 4, transform: [{ rotate: '-4deg' }] },
+  loadingBrandMark: { width: 68, height: 68, borderRadius: 24, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   loadingCrossV: { position: 'absolute', width: 11, height: 32, borderRadius: 4, backgroundColor: colors.white },
   loadingCrossH: { position: 'absolute', width: 32, height: 11, borderRadius: 4, backgroundColor: colors.white },
+  loadingMarkPulse: { position: 'absolute', left: 9, right: 9, height: 11, bottom: 12, overflow: 'hidden' },
+  loadingMarkPulseDot: { position: 'absolute', left: '50%', top: 4, width: 5, height: 5, marginLeft: -2, borderRadius: 3, backgroundColor: '#a9d4bb' },
   loadingOrbit: { position: 'absolute', width: 88, height: 88, borderWidth: 2, borderColor: colors.border, borderTopColor: colors.accent, borderRightColor: '#a5c5b5', borderRadius: 44 },
   loadingOrbitDot: { position: 'absolute', top: -3, left: '50%', marginLeft: -3, width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent },
   loadingBrand: { color: colors.heading, fontWeight: '800', fontSize: 22, letterSpacing: 0.1, marginBottom: 6 },

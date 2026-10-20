@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { router, Stack, useRootNavigationState, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -9,7 +9,6 @@ import { registerPushToken } from '../src/push';
 import { routeForPushData } from '../src/push-routing';
 import { SessionProvider, useSession } from '../src/session';
 import { colors, Loading } from '../src/ui';
-import { StartupSplash } from '../src/ui/StartupSplash';
 
 /**
  * Raíz de la app: la sesión para todas las pantallas y la pila de navegación
@@ -19,7 +18,6 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <SessionProvider>
-        <StatusBar style="light" />
         <Navigation />
       </SessionProvider>
     </SafeAreaProvider>
@@ -28,17 +26,11 @@ export default function RootLayout() {
 
 function Navigation() {
   const { booted, user } = useSession();
-  const [introElapsed, setIntroElapsed] = useState(false);
-  const [splashDismissed, setSplashDismissed] = useState(false);
   const segments = useSegments();
   const ready = !!useRootNavigationState()?.key;
   const top = segments[0] as string | undefined;
   // Con textos legales nuevos sin aceptar, la cuenta no sigue (como en la web): solo se pueden leer.
   const mustAccept = !!user?.needsLegalAcceptance;
-  useEffect(() => {
-    const timer = setTimeout(() => setIntroElapsed(true), 1750);
-    return () => clearTimeout(timer);
-  }, []);
   useEffect(() => {
     if (ready && booted && mustAccept && top !== 'aceptar-legal' && top !== 'legal') router.push('/aceptar-legal');
   }, [ready, booted, mustAccept, top]);
@@ -70,6 +62,7 @@ function Navigation() {
 
   return (
     <View style={{ flex: 1 }}>
+      <StatusBar style={booted ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: colors.primary },
@@ -81,17 +74,7 @@ function Navigation() {
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
-      {!splashDismissed && (
-        <StartupSplash
-          exiting={introElapsed}
-          onExited={() => setSplashDismissed(true)}
-        />
-      )}
-      {splashDismissed && !booted && (
-        <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 1000 }}>
-          <Loading label="Cargando tu cuenta…" />
-        </View>
-      )}
+      <Loading visible={!booted} label="Cargando tu cuenta…" />
     </View>
   );
 }
