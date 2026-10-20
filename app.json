@@ -2,7 +2,7 @@
   "expo": {
     "name": "Guía Médica Monagas",
     "slug": "guia-medica-monagas-app",
-    "version": "0.3.4",
+    "version": "0.3.5",
     "orientation": "default",
     "scheme": "guiamedicamonagas",
     "userInterfaceStyle": "light",
@@ -22,7 +22,7 @@
         "android.permission.READ_MEDIA_AUDIO"
       ],
       "allowBackup": false,
-      "versionCode": 7
+      "versionCode": 8
     },
     "ios": {
       "bundleIdentifier": "com.guiamedicamonagas.app",
