@@ -2,7 +2,7 @@
   "expo": {
     "name": "MonagasMed - Guía Médica Monagas — Directorio médico verificado",
     "slug": "guia-medica-monagas-app",
-    "version": "0.3.6",
+    "version": "0.3.7",
     "orientation": "default",
     "scheme": "guiamedicamonagas",
     "userInterfaceStyle": "light",
@@ -22,7 +22,7 @@
         "android.permission.READ_MEDIA_AUDIO"
       ],
       "allowBackup": false,
-      "versionCode": 9
+      "versionCode": 10
     },
     "ios": {
       "bundleIdentifier": "com.guiamedicamonagas.app",
